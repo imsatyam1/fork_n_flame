@@ -6,9 +6,11 @@ import { LoginInputState, userLoginSchema } from "@/schema/userSchema";
 import { Loader2, LockKeyhole, Mail } from "lucide-react";
 import { ChangeEvent, FormEvent, useState } from "react";
 import { Link, useNavigate } from "react-router-dom"; 
+import { useUserStore } from "@/store/useUserStore";
+import { Toaster } from "@/components/ui/sonner";
+import { toast } from "sonner";
 
 const Login = () => {
-  const loading = true;
 
   const [input, setInput] = useState<LoginInputState>({
     email: "",
@@ -16,6 +18,7 @@ const Login = () => {
   });
 
   const [errors, setErrors] = useState<Partial<LoginInputState>>({});
+  const { loading, login } = useUserStore();
 
   const navigate = useNavigate();
 
@@ -24,7 +27,7 @@ const Login = () => {
     setInput({ ...input, [name]: value });
   };
 
-  const loginSubmitHandler = (e: FormEvent) => {
+  const loginSubmitHandler = async (e: FormEvent) => {
     e.preventDefault();
     const result = userLoginSchema.safeParse(input);
     if(!result.success){
@@ -33,9 +36,11 @@ const Login = () => {
       return;
     }
     try {
+      await login(input);
       navigate("/");
-    } catch (error) {
+    } catch (error: any) {
       console.log(error);
+      toast.error(error)
     }
   };
 

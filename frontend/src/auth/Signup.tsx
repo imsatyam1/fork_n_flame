@@ -6,6 +6,7 @@ import { Separator } from "@radix-ui/react-separator";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { SignupInputState, userSignupSchema } from "@/schema/userSchema";
+import { useUserStore } from "@/store/useUserStore";
 
 const Signup = () => {
   const [input, setInput] = useState<SignupInputState>({
@@ -17,16 +18,16 @@ const Signup = () => {
 
   const [errors, setErrors] = useState<Partial<SignupInputState>>({});
 
-  const loading = false;
-
   const navigate = useNavigate();
+
+  const {loading, signup} = useUserStore();
 
   const changeEventHandler = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setInput({ ...input, [name]: value });
   };
 
-  const signUpSubmitHandler = (e: FormEvent) => {
+  const signUpSubmitHandler = async (e: FormEvent) => {
     e.preventDefault();
     const result = userSignupSchema.safeParse(input);
     if(!result.success){
@@ -35,7 +36,10 @@ const Signup = () => {
       return;
     }
     try {
-      navigate("/verify-email")
+      const success = await signup(input);
+      if (success) {
+        navigate("/verify-email")
+      }
     } catch (error) {
       console.log(error);
     }

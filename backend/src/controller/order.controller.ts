@@ -3,7 +3,6 @@ import { Restaurant } from "../models/restaurant.model";
 import { Order } from "../models/order.model";
 import Stripe from "stripe";
 
-// Make sure STRIPE_SECRET_KEY is defined
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string);
 
 type CheckoutSessionRequest = {

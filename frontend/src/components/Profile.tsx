@@ -13,6 +13,8 @@ import { Label } from "./ui/label";
 import { Button } from "./ui/button";
 import Footer from "./Footer";
 import Navbar from "./Navbar";
+import { useUserStore } from "@/store/useUserStore";
+import { toast } from "sonner";
 
 type profileDataState = {
   fullname: string;
@@ -23,15 +25,15 @@ type profileDataState = {
   profilePicture: string;
 };
 const Profile = () => {
-  const [user, setUser] = useState<string | null>(null);
-  const [isloading, setIsLoading] = useState<boolean>(false);
+  const { user, updateProfile } = useUserStore(); 
+  const [loading, setLoading] = useState<boolean>(false);
   const [profileData, setProfileData] = useState<profileDataState>({
-    fullname: "",
-    email: "",
-    address: "",
-    city: "",
-    country: "",
-    profilePicture: "",
+    fullname: user?.fullname || "",
+    email: user?.email || "",
+    address: user?.address || "",
+    city: user?.city || "",
+    country: user?.country || "",
+    profilePicture: user?.profilePicture || "",
   });
 
   const imageRef = useRef<HTMLInputElement | null>(null);
@@ -64,13 +66,14 @@ const Profile = () => {
     e: React.ChangeEvent<HTMLFormElement>
   ) => {
     try {
-      setIsLoading(true);
-      // await updateprofile(profileData)
-      console.log(profileData);
-    } catch (error) {
+      setLoading(true)
+      await updateProfile(profileData)
+    } catch (error: any) {
       console.log(error);
-    } finally {
-      setIsLoading(false);
+      toast.error(error)
+    }
+    finally{
+      setLoading(false);
     }
   };
 
@@ -171,7 +174,7 @@ const Profile = () => {
 
       {/* Submit Button */}
       <div className="text-center">
-        {isloading ? (
+        {loading ? (
           <Button
             disabled
             className="bg-orange-400 text-white hover:bg-orange-500"

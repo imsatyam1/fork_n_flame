@@ -5,10 +5,14 @@ import crypto from "crypto";
 import cloudinary from "../utils/cloudinary";
 import { generateVerificationCode } from "../utils/generateVerificationCode";
 import { generateToken } from "../utils/generateToken";
+import { sendPasswordResetEmail, sendResetSuccessEmail, sendVerificationEmail, sendWelcomeEmail } from "../Mailtrap/email";
 
 // SIGN UP
 export const signUp = async (req: Request, res: Response): Promise<Response> => {
     try {
+        console.log("Request Recived!!!");
+        
+        console.log(req.body);
         const { fullname, email, password, contact } = req.body;
 
         let user = await User.findOne({ email });
@@ -22,6 +26,8 @@ export const signUp = async (req: Request, res: Response): Promise<Response> => 
         const hashedPassword = await bcrypt.hash(password, 10);
         const verificationCode = generateVerificationCode();
 
+        await sendVerificationEmail(email, verificationCode);
+
         user = await User.create({
             fullname,
             email,
@@ -32,8 +38,6 @@ export const signUp = async (req: Request, res: Response): Promise<Response> => 
         });
 
         generateToken(res, user);
-
-        // await sendVerificationEmail(email, verificationCode);
 
         const userWithoutPassword = await User.findById(user._id).select("-password");
 
@@ -108,7 +112,7 @@ export const verifyEmail = async (req: Request, res: Response) => {
         user.verificationTokenExpiresAt = undefined;
         await user.save();
 
-        // await sendWelcomeEmail(user.email, user.fullname);
+        await sendWelcomeEmail(user.email, user.fullname);
 
         return res.status(200).json({
             success: true,
@@ -137,6 +141,8 @@ export const logout = async (req: Request, res: Response) => {
 // FORGOT PASSWORD
 export const forgotPassword = async (req: Request, res: Response) => {
     try {
+        console.log("Forgot Password");
+        
         const { email } = req.body;
         const user = await User.findOne({ email });
 
@@ -154,10 +160,11 @@ export const forgotPassword = async (req: Request, res: Response) => {
         user.resetPasswordExpiresAt = resetTokenExpiresAt;
         await user.save();
 
-        // await sendPasswordResetEmail(user.email, `${process.env.FRONTEND_URL}/resetpassword/${resetToken}`);
+        await sendPasswordResetEmail(user.email, `${process.env.FRONTEND_URL}/resetpassword/${resetToken}`);
 
         return res.status(200).json({
             success: true,
+            
             message: "Password reset link sent to your email"
         });
     } catch (error) {
@@ -190,7 +197,7 @@ export const resetPassword = async (req: Request, res: Response) => {
         user.resetPasswordExpiresAt = undefined;
         await user.save();
 
-        // await sendResetSuccessEmail(user.email);
+        await sendResetSuccessEmail(user.email);
 
         return res.status(200).json({
             success: true,

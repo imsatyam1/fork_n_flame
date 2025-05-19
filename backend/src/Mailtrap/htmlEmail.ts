@@ -69,7 +69,7 @@ export const htmlContent: string = `
                 <p>If you did not request this verification, please ignore this email.</p>
             </div>
             <div class="footer">
-                <p>&copy; 2024 Your Company. All rights reserved.</p>
+                <p>&copy; 2025 Fork & Flame. All rights reserved.</p>
             </div>
         </div>
     </body>
@@ -171,7 +171,7 @@ export const generatePasswordResetEmailHtml = (resetURL: string) => {
               margin: 20px 0;
               font-size: 16px;
               color: white;
-              background-color: #ffffff;
+              background-color: #FF5733;
               text-decoration: none;
               border-radius: 5px;
             }

@@ -38,24 +38,15 @@ import {
   SheetTrigger,
 } from "./ui/sheet";
 import { Separator } from "./ui/separator";
+import { useUserStore } from "@/store/useUserStore";
 
-// Reusable nav link styling
 const navLinkStyle =
   "flex items-center gap-3 px-3 py-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors font-medium";
 
 const Navbar = () => {
-  const [user, setUser] = useState<any>({});
-  const [loading, setLoading] = useState(false);
+  const { user, loading, logout } = useUserStore();
   const [cart, setCart] = useState<string[]>(["Pizza"]);
   const [theme, setTheme] = useState("light");
-
-  const handleLogout = () => {
-    setLoading(true);
-    setTimeout(() => {
-      setUser({});
-      setLoading(false);
-    }, 1000);
-  };
 
   return (
     <div className="w-full px-4 py-5 shadow-md bg-white dark:bg-gray-900">
@@ -67,8 +58,13 @@ const Navbar = () => {
 
         {/* Desktop Navigation */}
         <div className="hidden md:flex items-center gap-10">
-          <nav className="flex items-center  gap-6">
-            <Link to="/order/status" className="hover:text-orange-500 hover:text-lg hover:font-bold hover:underline">Order</Link>
+          <nav className="flex items-center gap-6">
+            <Link
+              to="/order/status"
+              className="hover:text-orange-500 hover:text-lg hover:font-bold hover:underline"
+            >
+              Order
+            </Link>
 
             {user?.admin && (
               <Menubar>
@@ -90,9 +86,9 @@ const Navbar = () => {
             )}
           </nav>
 
-          {/* Theme Toggle, Cart, Avatar, Logout */}
+          {/* Theme, Cart, Avatar, Auth Buttons */}
           <div className="flex items-center gap-6">
-            {/* Theme */}
+            {/* Theme Toggle */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" size="icon">
@@ -101,8 +97,12 @@ const Navbar = () => {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={() => setTheme("light")}>Light</DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setTheme("dark")}>Dark</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setTheme("light")}>
+                  Light
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setTheme("dark")}>
+                  Dark
+                </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
 
@@ -117,23 +117,31 @@ const Navbar = () => {
             </Link>
 
             {/* Avatar */}
-            <Link to="/profile">
-            <Avatar>
-              <AvatarImage src={user?.profilePicture} alt="profile" />
-              <AvatarFallback>CN</AvatarFallback>
-            </Avatar>
-            </Link>
+            {user && (
+              <Link to="/profile">
+                <Avatar>
+                  <AvatarImage src={user?.profilePicture} alt="profile" />
+                  <AvatarFallback>CN</AvatarFallback>
+                </Avatar>
+              </Link>
+            )}
 
-            {/* Logout */}
-            {loading ? (
-              <Button className="bg-orange-500 text-white gap-5" disabled>
-                <Loader2 className="animate-spin mr-2 h-4 w-4" />
-                Please wait
-              </Button>
+            {/* Login / Logout */}
+            {user ? (
+              loading ? (
+                <Button className="bg-orange-500 text-white gap-5" disabled>
+                  <Loader2 className="animate-spin mr-2 h-4 w-4" />
+                  Please wait
+                </Button>
+              ) : (
+                <Button onClick={logout} className="bg-orange-500 text-white hover:bg-orange-600 gap-5">
+                  Logout
+                </Button>
+              )
             ) : (
-              <Button onClick={handleLogout} className="bg-orange-500 text-white hover:bg-orange-600 gap-5">
-                Logout
-              </Button>
+              <Link to="/login">
+                <Button className="bg-orange-500 text-white hover:bg-orange-600">Login</Button>
+              </Link>
             )}
           </div>
         </div>
@@ -143,7 +151,7 @@ const Navbar = () => {
           <MobileNavbar
             user={user}
             loading={loading}
-            handleLogout={handleLogout}
+            logout={logout}
             cartCount={cart.length}
             setTheme={setTheme}
           />
@@ -155,7 +163,7 @@ const Navbar = () => {
 
 export default Navbar;
 
-const MobileNavbar = ({ user, loading, handleLogout, cartCount, setTheme }: any) => {
+const MobileNavbar = ({ user, loading, logout, cartCount, setTheme }: any) => {
   return (
     <Sheet>
       <SheetTrigger asChild>
@@ -174,8 +182,12 @@ const MobileNavbar = ({ user, loading, handleLogout, cartCount, setTheme }: any)
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => setTheme("light")}>Light</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setTheme("dark")}>Dark</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setTheme("light")}>
+                Light
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setTheme("dark")}>
+                Dark
+              </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </SheetHeader>
@@ -183,9 +195,11 @@ const MobileNavbar = ({ user, loading, handleLogout, cartCount, setTheme }: any)
         <Separator className="my-5" />
 
         <SheetDescription className="flex-1 flex flex-col gap-2">
-          <Link to="/profile" className={navLinkStyle}>
-            <User /> Profile
-          </Link>
+          {user && (
+            <Link to="/profile" className={navLinkStyle}>
+              <User /> Profile
+            </Link>
+          )}
           <Link to="/order/status" className={navLinkStyle}>
             <HandPlatter /> Order
           </Link>
@@ -202,30 +216,45 @@ const MobileNavbar = ({ user, loading, handleLogout, cartCount, setTheme }: any)
                 <UtensilsCrossed /> Restaurant
               </Link>
               <Link to="/admin/orders" className={navLinkStyle}>
-                <PackageCheck />Restaurant Orders
+                <PackageCheck />
+                Restaurant Orders
               </Link>
             </>
           )}
         </SheetDescription>
 
         <SheetFooter className="flex flex-col gap-4">
-          <div className="flex items-center gap-3">
-            <Avatar>
-              <AvatarImage src={user?.profilePicture} />
-              <AvatarFallback>CN</AvatarFallback>
-            </Avatar>
-            <p className="font-semibold">Fork & Flame</p>
-          </div>
+          {user && (
+            <div className="flex items-center gap-3">
+              <Avatar>
+                <AvatarImage src={user?.profilePicture} />
+                <AvatarFallback>CN</AvatarFallback>
+              </Avatar>
+              <p className="font-semibold">Fork & Flame</p>
+            </div>
+          )}
+
           <SheetClose asChild>
-            {loading ? (
-              <Button className="bg-orange-500 text-white" disabled>
-                <Loader2 className="animate-spin mr-2 h-4 w-4" />
-                Please wait
-              </Button>
+            {user ? (
+              loading ? (
+                <Button className="bg-orange-500 text-white" disabled>
+                  <Loader2 className="animate-spin mr-2 h-4 w-4" />
+                  Please wait
+                </Button>
+              ) : (
+                <Button
+                  onClick={logout}
+                  className="bg-orange-500 text-white hover:bg-orange-600"
+                >
+                  Logout
+                </Button>
+              )
             ) : (
-              <Button onClick={handleLogout} className="bg-orange-500 text-white hover:bg-orange-600">
-                Logout
-              </Button>
+              <Link to="/login">
+                <Button className="bg-orange-500 text-white hover:bg-orange-600">
+                  Login
+                </Button>
+              </Link>
             )}
           </SheetClose>
         </SheetFooter>
