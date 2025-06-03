@@ -1,20 +1,31 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useUserStore } from "@/store/useUserStore";
-import { Loader2 } from "lucide-react";
+import { Loader2, RefreshCcw } from "lucide-react";
 import React, { FormEvent, useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 const VerifyEmail = () => {
   const [otp, setOtp] = useState<string[]>(["", "", "", "", "", ""]);
+  const [resendCooldown, setResendCooldown] = useState<number>(60);
   const inputRef = useRef<(HTMLInputElement | null)[]>([]);
   const navigate = useNavigate();
 
-  const { loading, verifyEmail} = useUserStore();
+  const { loading, verifyEmail, resendEmailVerification } = useUserStore();
 
   useEffect(() => {
     inputRef.current[0]?.focus();
   }, []);
+
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+    if(resendCooldown > 0){
+      interval = setInterval(() => {
+        setResendCooldown((prev) => prev -1);
+      }, 1000);
+    }
+    return () => clearInterval(interval);
+  }, [resendCooldown]);
 
   const handleChange = (index: number, value: string) => {
     if (/^[a-zA-Z0-9]$/.test(value) || value === "") {
@@ -43,12 +54,23 @@ const VerifyEmail = () => {
     if (verificationCode.length < 6) return;
 
     try {
-      await verifyEmail(verificationCode);
-      navigate("/login");
+      const success = await verifyEmail(verificationCode);
+      if (success) {
+        navigate("/login");
+      }
     } catch (error) {
       console.error(error);
     }
   };
+
+  const handleResendOtp = async () => {
+    try {
+      await resendEmailVerification();
+      setResendCooldown(60);
+    } catch (error) {
+      console.error("Failed to resend OTP");
+    }
+  }
 
   return (
     <div className="flex items-center justify-center h-screen bg-gray-50 px-4">
@@ -96,6 +118,18 @@ const VerifyEmail = () => {
                 Verify
               </Button>
             )}
+          </div>
+          <div className="text-center">
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={handleResendOtp}
+              // disabled={resendCooldown > 0}
+              className="text-orange-600 hover:text-orange-700 flex items-center mx-auto"
+            >
+              <RefreshCcw className="w-4 h-4 mr-1"/>
+              { resendCooldown > 0 ? `Resend OTP in ${resendCooldown}s`: "Resend OTP"}
+            </Button>
           </div>
         </form>
       </div>

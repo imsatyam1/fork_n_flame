@@ -20,6 +20,7 @@ import {
   Menu,
   Moon,
   PackageCheck,
+  Search,
   ShoppingCart,
   SquareMenu,
   Sun,
@@ -39,14 +40,16 @@ import {
 } from "./ui/sheet";
 import { Separator } from "./ui/separator";
 import { useUserStore } from "@/store/useUserStore";
+import { useCartStore } from "@/store/useCartStore";
+import { useThemeStore } from "@/store/useThemeStore";
 
 const navLinkStyle =
   "flex items-center gap-3 px-3 py-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors font-medium";
 
 const Navbar = () => {
   const { user, loading, logout } = useUserStore();
-  const [cart, setCart] = useState<string[]>(["Pizza"]);
-  const [theme, setTheme] = useState("light");
+  const { cart } = useCartStore();
+  const { setTheme } = useThemeStore();
 
   return (
     <div className="w-full px-4 py-5 shadow-md bg-white dark:bg-gray-900">
@@ -64,6 +67,13 @@ const Navbar = () => {
               className="hover:text-orange-500 hover:text-lg hover:font-bold hover:underline"
             >
               Order
+            </Link>
+
+            <Link
+              to="/search"
+              className="hover:text-orange-500 hover:text-lg hover:font-bold hover:underline"
+            >
+              Search
             </Link>
 
             {user?.admin && (
@@ -128,16 +138,22 @@ const Navbar = () => {
 
             {/* Login / Logout */}
             {user ? (
-              loading ? (
-                <Button className="bg-orange-500 text-white gap-5" disabled>
-                  <Loader2 className="animate-spin mr-2 h-4 w-4" />
-                  Please wait
-                </Button>
-              ) : (
-                <Button onClick={logout} className="bg-orange-500 text-white hover:bg-orange-600 gap-5">
+              // loading ? (
+              //   <Button className="bg-orange-500 text-white gap-5" disabled>
+              //     <Loader2 className="animate-spin mr-2 h-4 w-4" />
+              //     Please wait
+              //   </Button>
+              // ) : (
+              //   <Button onClick={logout} className="bg-orange-500 text-white hover:bg-orange-600 gap-5">
+              //     Logout
+              //   </Button>
+              // )
+              <Button
+                  onClick={logout}
+                  className="bg-orange-500 text-white hover:bg-orange-600"
+                >
                   Logout
                 </Button>
-              )
             ) : (
               <Link to="/login">
                 <Button className="bg-orange-500 text-white hover:bg-orange-600">Login</Button>
@@ -203,6 +219,9 @@ const MobileNavbar = ({ user, loading, logout, cartCount, setTheme }: any) => {
           <Link to="/order/status" className={navLinkStyle}>
             <HandPlatter /> Order
           </Link>
+          <Link to="/search" className={navLinkStyle}>
+            <Search /> Search
+          </Link>
           <Link to="/cart" className={navLinkStyle}>
             <ShoppingCart /> Cart ({cartCount})
           </Link>
@@ -236,19 +255,25 @@ const MobileNavbar = ({ user, loading, logout, cartCount, setTheme }: any) => {
 
           <SheetClose asChild>
             {user ? (
-              loading ? (
-                <Button className="bg-orange-500 text-white" disabled>
-                  <Loader2 className="animate-spin mr-2 h-4 w-4" />
-                  Please wait
-                </Button>
-              ) : (
-                <Button
+              // loading ? (
+              //   <Button className="bg-orange-500 text-white" disabled>
+              //     <Loader2 className="animate-spin mr-2 h-4 w-4" />
+              //     Please wait
+              //   </Button>
+              // ) : (
+              //   <Button
+              //     onClick={logout}
+              //     className="bg-orange-500 text-white hover:bg-orange-600"
+              //   >
+              //     Logout
+              //   </Button>
+              // )
+              <Button
                   onClick={logout}
                   className="bg-orange-500 text-white hover:bg-orange-600"
                 >
                   Logout
                 </Button>
-              )
             ) : (
               <Link to="/login">
                 <Button className="bg-orange-500 text-white hover:bg-orange-600">

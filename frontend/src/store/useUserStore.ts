@@ -1,17 +1,14 @@
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 import axios from "axios";
-import { input, set } from "zod";
 import { LoginInputState, SignupInputState } from "@/schema/userSchema";
-import { Toaster } from "@/components/ui/sonner";
 import { toast } from "sonner";
-import { error } from "console";
-import { useNavigate } from "react-router-dom";
 
 const API_END_POINT = "http://localhost:8080/api/v1/user";
 axios.defaults.withCredentials = true;
 
 type User = {
+  _id: string;
   fullname: string;
   email: string;
   contact: number;
@@ -36,11 +33,12 @@ type UserState = {
   forgotPassword: (email: string) => Promise<boolean>;
   resetPassword: (token: string, newPassword: string) => Promise<boolean>;
   updateProfile: (input: any) => Promise<void>;
+  resendEmailVerification: () => Promise<void>;
 };
 
 export const useUserStore = create<UserState>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       user: null,
       isAuthenticated: false,
       isCheckingAuth: true,
@@ -69,7 +67,7 @@ export const useUserStore = create<UserState>()(
         } catch (error: any) {
           toast.error(error.response?.data?.message || "Signup failed");
           set({ loading: false });
-          return false; 
+          return false;
         }
       },
 
@@ -106,7 +104,7 @@ export const useUserStore = create<UserState>()(
               },
             }
           );
-      
+
           if (response.data.success) {
             toast.success(response.data.message);
             set({
@@ -125,11 +123,12 @@ export const useUserStore = create<UserState>()(
           return false;
         }
       },
-      
+
       checkAuthentication: async () => {
         try {
           set({ isCheckingAuth: true });
           const response = await axios.get(`${API_END_POINT}/check-auth`);
+          
           if (response.data.success) {
             set({
               user: response.data.user,
@@ -146,21 +145,20 @@ export const useUserStore = create<UserState>()(
         try {
           set({ loading: true });
           const response = await axios.post(`${API_END_POINT}/logout`);
-          console.log(response);
-          
+
           if (response.data.success) {
             toast.success(response.data.message);
             set({ loading: false, user: null, isAuthenticated: false });
             return true;
-          }
-          else{
-            set({ loading: false});
+          } else {
             return false;
           }
         } catch (error: any) {
           toast.error(error.response.data.message);
-          set({ loading: false });
           return false;
+        }
+        finally{
+          set({ loading: false });
         }
       },
 
@@ -176,9 +174,8 @@ export const useUserStore = create<UserState>()(
             toast.success(response.data.message);
             set({ loading: false, user: null, isAuthenticated: false });
             return true;
-          }
-          else{
-            set({ loading: false})
+          } else {
+            set({ loading: false });
             return false;
           }
         } catch (error: any) {
@@ -189,21 +186,17 @@ export const useUserStore = create<UserState>()(
       },
       resetPassword: async (token: string, newPassword: string) => {
         try {
-          console.log("reset Password");
-          
           set({ loading: true });
           const response = await axios.post(
             `${API_END_POINT}/reset-password/${token}`,
             { newPassword }
           );
-          console.log(response);
-          
+
           if (response.data.success) {
             toast.success(response.data.message);
             set({ loading: false });
             return true;
-          }
-          else{
+          } else {
             set({ loading: false });
             return false;
           }
@@ -214,20 +207,48 @@ export const useUserStore = create<UserState>()(
         }
       },
 
-      updateProfile: async (input: any) => {
+      updateProfile: async (formData: FormData) => {
         try {
+          const userId = get().user?._id;
+          if (!userId) {
+            toast.error("User ID is missing");
+            return;
+          }
+
+          formData.append("_id", userId);
+
           const response = await axios.put(
-            `${API_END_POINT}/profile/update`,
-            input,
+            `${API_END_POINT}/update-profile`,
+            formData,
             {
               headers: {
-                "Content-Type": "application/json",
+                "Content-Type": "multipart/form-data",
               },
             }
           );
+
           if (response.data.success) {
             toast.success(response.data.message);
             set({ user: response.data.user, isAuthenticated: true });
+          }
+        } catch (error: any) {
+          toast.error(error.response?.data?.message || "Profile update failed");
+        }
+      },
+
+      resendEmailVerification: async () => {
+        try {
+          const userId = get().user?._id;
+          if (!userId) {
+            toast.error("User ID is missing");
+            return;
+          }
+          const response = await axios.post(`${API_END_POINT}/resend-otp`, {
+            _id: userId,
+          });
+
+          if (response.data.success) {
+            toast.success(response.data.message);
           }
         } catch (error: any) {
           toast.error(error.response.data.message);

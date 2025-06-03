@@ -1,77 +1,78 @@
-import mongoose, { Model, Types } from "mongoose";
+import mongoose, { Document, Model } from "mongoose";
 
 export interface IUser {
-    _id: Types.ObjectId;
-    fullname: string;
-    email: string;
-    password: string;
-    contact: number;
-    address: string;
-    city: string;
-    country: string;
-    profilePicture: string;
-    admin: boolean;
+    fullname:string;
+    email:string;
+    password:string;
+    contact:number;
+    address:string;
+    city:string;
+    country:string;
+    profilePicture:string;
+    admin:boolean;
     lastLogin?: Date;
-    isVerified: boolean;
-    resetPasswordToken?: string;
-    resetPasswordExpiresAt?: Date;
-    verificationToken?: string;
-    verificationTokenExpiresAt?: Date; 
+    isVerified?: boolean;
+    resetPasswordToken?:string;
+    resetPasswordTokenExpiresAt?:Date;
+    verificationToken?:string;
+    verificationTokenExpiresAt?:Date
 }
 
 export interface IUserDocument extends IUser, Document {
-    createdAt: Date;
-    upadatedAt: Date;
+    createdAt:Date;
+    updatedAt:Date;
 }
 
 const userSchema = new mongoose.Schema<IUserDocument>({
-    fullname:{
+    fullname: {
         type: String,
         required: true
     },
     email: {
         type: String,
+        unique: true,
+        lowercase: true,
+        trim: true,
         required: true
     },
-    password:{
+    password: {
         type: String,
         required: true
     },
-    contact:{
+    contact: {
         type: Number,
         required: true
     },
-    address:{
+    address: {
         type: String,
         default: "Update your address"
     },
     city:{
-        type: String,
-        default: "Update your city"
+        type:String,
+        default:"Update your city"
     },
     country:{
-        type: String,
-        default: "Update your country"
+        type:String,
+        default:"Update your country"
     },
     profilePicture:{
-        type: String,
-        default: ""
+        type:String,
+        default:"",
     },
-    admin:{type: Boolean, default: false},
-
-    // advance authentication
+    admin:{type:Boolean, default:false},
+    // advanced authentication
     lastLogin:{
-        type: Date,
-        default: Date.now
+        type:Date,
+        default:Date.now
     },
-    isVerified: {
-        type: Boolean,
-        default: false
+    isVerified:{
+        type:Boolean,
+        default:false
     },
-    resetPasswordToken: String,
-    resetPasswordExpiresAt: Date,
-    verificationToken: String,
-    verificationTokenExpiresAt: Date
-}, {timestamps: true})
+    resetPasswordToken:String,
+    resetPasswordTokenExpiresAt:Date,
+    verificationToken:String,
+    verificationTokenExpiresAt:Date,
+},{timestamps:true});
 
-export const User: Model<IUserDocument> = mongoose.model<IUserDocument>("User", userSchema);
+export const User : Model<IUserDocument> = mongoose.model<IUserDocument>("User", userSchema);

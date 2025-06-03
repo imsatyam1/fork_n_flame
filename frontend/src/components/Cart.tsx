@@ -2,88 +2,20 @@ import React, { useState } from "react";
 import { Button } from "./ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@radix-ui/react-avatar";
 import { Minus, Plus, Trash2 } from "lucide-react";
-import Navbar from "./Navbar";
 import CheckoutConfirmPage from "./CheckoutConfirmPage";
-
-type CartItem = {
-  _id: string;
-  image: string;
-  name: string;
-  price: number;
-  quantity: number;
-};
+import { useCartStore } from "@/store/useCartStore";
 
 const Cart = () => {
-  const [cart, setCart] = useState<CartItem[]>([
-    {
-      _id: "1",
-      image:
-        "https://b.zmtcdn.com/data/dish_photos/126/0aab475f8fe817df5cac800cd86ee126.png",
-      name: "Rasgulla",
-      price: 20,
-      quantity: 1,
-    },
-    {
-      _id: "2",
-      image:
-        "https://cdn.zeptonow.com/production///tr:w-600,ar-100-100,pr-true,f-auto,q-80/web/recipes/chola-bhatura.png",
-      name: "Chole Bhature",
-      price: 70,
-      quantity: 1,
-    },
-    {
-      _id: "3",
-      image:
-        "https://www.indianhealthyrecipes.com/wp-content/uploads/2021/11/pav-bhaji.jpg",
-      name: "Pav Bhaji",
-      price: 60,
-      quantity: 1,
-    },
-  ]);
+  const [open, setOpen] = useState<boolean>(false);
 
-  const incrementQuantity = (id: string) => {
-    setCart((prevCart) =>
-      prevCart.map((item) =>
-        item._id === id
-          ? {
-              ...item,
-              quantity: item.quantity + 1,
-            }
-          : item
-      )
-    );
-  };
+  const { cart, decrementQuantity, incrementQuantity, clearCart, removeFromTheCart} = useCartStore();
 
-  const decrementQuantity = (id: string) => {
-    setCart((prevCart) =>
-      prevCart.map((item) =>
-        item._id === id
-          ? {
-              ...item,
-              quantity: item.quantity - 1,
-            }
-          : item
-      )
-    );
-  };
-
-  let totalAmout = cart.reduce((acc, ele) => {
+  let totalAmount = cart.reduce((acc, ele) => {
     return acc + ele.price * ele.quantity;
   }, 0);
 
-  const clearItem = () => {
-    setCart([]);
-  };
-
-  const deleteItem = (id: string) => {
-    setCart((prevData) => prevData.filter((item) => item._id !== id));
-  };
-
-  const [open, setOpen] = useState<boolean>(false);
-
   return (
     <>
-      <Navbar />
       <div className="flex flex-col max-w-7xl mx-auto my-10 p-4">
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
@@ -91,7 +23,7 @@ const Cart = () => {
             Your Cart
           </h1>
           <Button
-            onClick={() => clearItem()}
+            onClick={() => clearCart()}
             variant="link"
             className="text-red-500 hover:underline"
           >
@@ -155,7 +87,7 @@ const Cart = () => {
               size="icon"
               variant="ghost"
               className="text-red-500 hover:bg-red-100 dark:hover:bg-red-900"
-              onClick={() => deleteItem(item._id)}
+              onClick={() => removeFromTheCart(item._id)}
             >
               <Trash2 />
             </Button>
@@ -163,7 +95,7 @@ const Cart = () => {
         ))}
         <div className="fixed bottom-0 left-0 w-full bg-white dark:bg-gray-900 border-t p-4 flex flex-col md:flex-row justify-between items-center gap-4 shadow-lg z-50">
           <h1 className="font-bold text-xl md:text-2xl text-gray-800 dark:text-white">
-            Total: {totalAmout}
+            Total: {totalAmount}
           </h1>
           <button
             className="px-6 py-3 bg-orange-500 hover:bg-orange-400 text-white font-semibold rounded-lg shadow-md transition"

@@ -11,8 +11,6 @@ import {
 } from "lucide-react";
 import { Label } from "./ui/label";
 import { Button } from "./ui/button";
-import Footer from "./Footer";
-import Navbar from "./Navbar";
 import { useUserStore } from "@/store/useUserStore";
 import { toast } from "sonner";
 
@@ -24,6 +22,7 @@ type profileDataState = {
   country: string;
   profilePicture: string;
 };
+
 const Profile = () => {
   const { user, updateProfile } = useUserStore(); 
   const [loading, setLoading] = useState<boolean>(false);
@@ -37,21 +36,20 @@ const Profile = () => {
   });
 
   const imageRef = useRef<HTMLInputElement | null>(null);
-  const [selectedProfilePicture, setSelectedProfilePicture] = useState<string>(
-    profileData.profilePicture || ""
-  );
+  const [selectedFile, setSlectedFile] = useState<File | null>(null);
+  const[selectedPreview, setSlectedPreview] = useState<string>(user?.profilePicture || "");
 
   const fileChangeHandler = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       const reader = new FileReader();
       reader.onloadend = () => {
-        const result = reader.result as string;
-        setSelectedProfilePicture(result);
-        setProfileData((prevData) => ({
-          ...prevData,
-          profilePicture: result,
-        }));
+        setSlectedFile(file);
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          setSlectedPreview(reader.result as string);
+        };
+        reader.readAsDataURL(file);
       };
       reader.readAsDataURL(file);
     }
@@ -65,9 +63,24 @@ const Profile = () => {
   const updatePeofileHandler = async (
     e: React.ChangeEvent<HTMLFormElement>
   ) => {
+    e.preventDefault();
+    setLoading(true);
+
     try {
-      setLoading(true)
-      await updateProfile(profileData)
+      const formData = new FormData();
+
+      formData.append("fullname", profileData.fullname);
+      formData.append("email", profileData.email);
+      formData.append("address", profileData.address);
+      formData.append("city", profileData.city);
+      formData.append("country", profileData.country);
+      
+      if(selectedFile) {
+        formData.append("profilePicture", selectedFile);
+      }
+
+      await updateProfile(formData)
+
     } catch (error: any) {
       console.log(error);
       toast.error(error)
@@ -79,7 +92,6 @@ const Profile = () => {
 
   return (
     <div className="min-h-screen flex flex-col">
-      <Navbar />
       <form
       onSubmit={updatePeofileHandler}
       className="max-w-4xl mx-auto px-4 py-8 space-y-8 flex-grow"
@@ -88,7 +100,7 @@ const Profile = () => {
       <div className="flex items-center gap-6">
         <div className="relative group">
           <Avatar className="md:w-28 md:h-28 w-20 h-20 border-2 border-orange-400 shadow-md">
-            <AvatarImage src={selectedProfilePicture} />
+            <AvatarImage src={selectedPreview} />
             <AvatarFallback>CN</AvatarFallback>
           </Avatar>
           <Input
@@ -192,7 +204,6 @@ const Profile = () => {
         )}
       </div>
     </form>
-    <Footer />
     </div>
   );
 };

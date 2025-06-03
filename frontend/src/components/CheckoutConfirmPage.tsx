@@ -12,35 +12,10 @@ import { Label } from "./ui/label";
 import { Input } from "./ui/input";
 import { Button } from "./ui/button";
 import { Loader2 } from "lucide-react";
-
-type userType = {
-  fullname: string;
-  email: string;
-  contact: number;
-  address: string;
-  city: string;
-  country: string;
-};
-
-// Sample cart and user (replace with actual data via props/context/store)
-const cart: cartItems[] = [
-  {
-    menuId: "1",
-    name: "Rasgulla",
-    image: "",
-    price: "20",
-    quantity: "1",
-  },
-];
-
-const user: userType = {
-  fullname: "Satyam",
-  email: "satyam@gmail.com",
-  contact: 9608828614,
-  address: "A-218 GD Colony, Mayur Vihar Phase-3",
-  city: "Delhi",
-  country: "India",
-};
+import { useUserStore } from "@/store/useUserStore";
+import { useCartStore } from "@/store/useCartStore";
+import { useRestaurantStore } from "@/store/useRestaurantStore";
+import { useOrderStore } from "@/store/useOrderStore";
 
 const CheckoutConfirmPage = ({
   open,
@@ -49,17 +24,19 @@ const CheckoutConfirmPage = ({
   open: boolean;
   setOpen: Dispatch<SetStateAction<boolean>>;
 }) => {
-  const [restaurant, setRestaurant] = useState<MenuItem | null>(null);
-  const [loading, setLoading] = useState<boolean>(false);
+  const { user } = useUserStore();
 
   const [input, setInput] = useState({
-    name: user.fullname,
-    email: user.email,
-    contact: user.contact.toString(),
-    address: user.address,
-    city: user.city,
-    country: user.country,
+    name: user?.fullname || "",
+    email: user?.email || "",
+    contact: user?.contact.toString() || "",
+    address: user?.address || "",
+    city: user?.city || "",
+    country: user?.country || "",
   });
+  const { cart } = useCartStore();
+  const { restaurant } = useRestaurantStore();
+  const { createCheckoutSession, loading} = useOrderStore();
 
   const changeEventHandler = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -68,28 +45,22 @@ const CheckoutConfirmPage = ({
 
   const checkoutHandler = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setLoading(true);
     try {
       const checkoutData: CheckoutSessionRequest = {
-        cartItem: cart.map((item) => ({
-          menuId: item.menuId,
+        cartItems: cart.map((item) => ({
+          menuId: item._id,
           name: item.name,
           image: item.image,
-          price: item.price,
-          quantity: item.quantity,
+          price: item.price.toString(),
+          quantity: item.quantity.toString(),
         })),
-        deleveryDetails: input,
-        restaurantId: restaurant?._id ?? "default_restaurant_id", // fallback if null
+        deliveryDetails: input,
+        restaurantId: restaurant?._id as string, // fallback if null
       };
 
-      console.log("Checkout Payload:", checkoutData);
-
-      // TODO: Add API call or Stripe/PayPal integration here
-
+      await createCheckoutSession(checkoutData)
     } catch (error) {
       console.error("Checkout Error:", error);
-    } finally {
-      setLoading(false);
     }
   };
 

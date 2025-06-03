@@ -5,13 +5,12 @@ import { Separator } from "@/components/ui/separator";
 import { LoginInputState, userLoginSchema } from "@/schema/userSchema";
 import { Loader2, LockKeyhole, Mail } from "lucide-react";
 import { ChangeEvent, FormEvent, useState } from "react";
-import { Link, useNavigate } from "react-router-dom"; 
+import { Link, useNavigate } from "react-router-dom";
 import { useUserStore } from "@/store/useUserStore";
 import { Toaster } from "@/components/ui/sonner";
 import { toast } from "sonner";
 
 const Login = () => {
-
   const [input, setInput] = useState<LoginInputState>({
     email: "",
     password: "",
@@ -30,7 +29,7 @@ const Login = () => {
   const loginSubmitHandler = async (e: FormEvent) => {
     e.preventDefault();
     const result = userLoginSchema.safeParse(input);
-    if(!result.success){
+    if (!result.success) {
       const fieldErrors = result.error.formErrors.fieldErrors;
       setErrors(fieldErrors as Partial<LoginInputState>);
       return;
@@ -40,7 +39,7 @@ const Login = () => {
       navigate("/");
     } catch (error: any) {
       console.log(error);
-      toast.error(error)
+      toast.error(error);
     }
   };
 
@@ -98,7 +97,7 @@ const Login = () => {
 
         {/* Login Button */}
         <div className="pt-2">
-          {loading ? (
+          {/* {loading ? (
             <Button
               disabled
               className="w-full bg-orange-400 hover:bg-orange-500 text-white transition-colors"
@@ -113,7 +112,13 @@ const Login = () => {
             >
               Login
             </Button>
-          )}
+          )} */}
+          <Button
+              type="submit"
+              className="w-full bg-orange-400 hover:bg-orange-500 text-white transition-all duration-300"
+            >
+              Login
+            </Button>
         </div>
 
         {/* Forgot Password */}

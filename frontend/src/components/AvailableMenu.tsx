@@ -1,53 +1,81 @@
-import { MenuItem } from '@/types/restaurantType';
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Card, CardContent, CardFooter } from './ui/card';
-import { Button } from './ui/button';
-import Navbar from './Navbar';
+import { MenuItem } from "@/types/restaurantType";
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { Card, CardContent, CardFooter } from "./ui/card";
+import { Button } from "./ui/button";
+import { useCartStore } from "@/store/useCartStore";
+import { error } from "console";
+
+
+type MenuGroupedByTheme = {
+  [theme: string]: MenuItem[];
+};
 
 const AvailableMenu = ({ menus }: { menus: MenuItem[] }) => {
-  const [addToCart, setAddToCart] = useState<string[]>([]);
-  const navigate = useNavigate();
+  const { addToCart } = useCartStore();
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const handleAddToCart = (menuId: string) => {
-    setAddToCart((prev) => [...prev, menuId]);
-    console.log('Cart Items:', addToCart);
-  };
+  const groupMenusByTheme = (menus: MenuItem[]): MenuGroupedByTheme => {
+      return menus.reduce((acc: MenuGroupedByTheme, menu) => {
+        const theme = menu.theme || "Others";
+        if (!acc[theme]) {
+          acc[theme] = [];
+        }
+        acc[theme].push(menu);
+        return acc;
+      }, {});
+    };
+  
+    const groupedMenus = groupMenusByTheme(menus);
 
   return (
-    <div className="p-4 md:p-8">
-      <h1 className="text-2xl md:text-3xl font-extrabold mb-8 text-center text-gray-800 dark:text-white">
-        Available Menus
-      </h1>
-      <div className="grid gap-8 md:grid-cols-3">
-        {menus.map((menu: MenuItem) => (
-          <Card
-            key={menu._id}
-            className="max-w-sm mx-auto shadow-xl rounded-2xl overflow-hidden hover:scale-105 transition-transform duration-300"
-          >
-            <img src={menu.image} alt={menu.name} className="w-full h-48 object-cover" />
-            <CardContent className="p-4">
-              <h2 className="text-2xl font-bold text-gray-800 dark:text-white">{menu.name}</h2>
-              <p className="text-sm text-gray-600 dark:text-gray-300 mt-2">{menu.description}</p>
-              <h3 className="text-lg font-semibold mt-4 text-gray-700 dark:text-gray-200">
-                Price: <span className="text-orange-500">₹{menu.price}</span>
-              </h3>
-            </CardContent>
-            <CardFooter className="p-4">
-              <Button
-                className="w-full bg-orange-500 hover:bg-orange-400 text-white font-semibold"
-                onClick={() => handleAddToCart(menu._id)}
-              >
-                Add To Cart
-              </Button>
-            </CardFooter>
-          </Card>
-        ))}
+    <div className="min-h-screen bg-gray-50">
+      <div className="max-w-6xl px-4 py-10">
+        <h1 className="text-3xl font-bold text-gray-800 mb-6 text-center">
+          Available Menus
+        </h1>
+
+        {error && <p className="text-red-500 mb-4">{error}</p>}
+        {loading ? (
+          <p className="text-gray-600">Loading menus...</p>
+        ) : (
+          Object.entries(groupedMenus).map(([theme, items]) => (
+            <div key={theme} className="mb-10">
+              <h2 className="text-2xl font-semibold text-orange-600 mb-4">
+                {theme}
+              </h2>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {items.map((menu) => (
+                  <div
+                    key={menu._id}
+                    className="bg-white border rounded-lg shadow p-4"
+                  >
+                    <img
+                      src={menu.image}
+                      alt={menu.name}
+                      className="w-full h-40 object-cover rounded-md mb-3"
+                    />
+                    <h3 className="text-xl font-semibold">{menu.name}</h3>
+                    <p className="text-sm text-gray-600">{menu.description}</p>
+                    <div className="text-orange-500 font-bold mt-2">
+                      ₹{menu.price}
+                    </div>
+                    <Button
+                      className="w-full bg-orange-500 hover:bg-orange-400 text-white font-semibold my-2"
+                      onClick={() => addToCart(menu)}
+                    >
+                      Add To Cart
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))
+        )}
       </div>
     </div>
   );
 };
 
 export default AvailableMenu;
-
-

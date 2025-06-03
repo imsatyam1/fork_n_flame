@@ -6,7 +6,8 @@ import {
   getRestaurantOrder,
   updateOrderStatus,
   searchRestaurant,
-  getSingleRestaurant
+  getSingleRestaurant,
+  getAllRestaurant
 } from '../controller/restaurant.controller';
 import { upload } from '../Middleware/multer';
 import { isAuthenticated } from '../Middleware/isAuthenticated';
@@ -27,6 +28,8 @@ router.put("/order/:orderId/status", catchAsync(isAuthenticated), catchAsync(upd
 router.get("/search/:searchText", catchAsync(isAuthenticated), catchAsync(searchRestaurant));
 
 // Get single restaurant (this should be last)
+router.get("/get-restaurants", catchAsync(isAuthenticated), catchAsync(getAllRestaurant));
+
 router.get("/:id", catchAsync(isAuthenticated), catchAsync(getSingleRestaurant));
 
 export default router;

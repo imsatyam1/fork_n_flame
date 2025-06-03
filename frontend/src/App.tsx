@@ -4,9 +4,7 @@ import Signup from './auth/Signup'
 import ForgotPassword from './auth/ForgotPassword'
 import ResetPassword from './auth/ResetPassword'
 import VerifyEmail from './auth/VerifyEmail'
-import Home from './components/Home'
 import Profile from './components/Profile'
-import SeachPage from './components/SeachPage'
 import RestaurantDetail from './components/RestaurantDetail'
 import Cart from './components/Cart'
 import Restaurant from './admin/Restaurant'
@@ -15,10 +13,11 @@ import Orders from './admin/Orders'
 import Success from './components/success'
 import { useUserStore } from './store/useUserStore'
 import { Navigate } from 'react-router-dom'
-import path from 'path'
-import HereSection from './components/HeroSection'
 import { useEffect } from 'react'
 import Loading from './components/Loading'
+import MainLayout from './Layout/MainLayout'
+import Home from './components/Home'
+import SearchPage from './components/SearchPage'
 
 const ProtectedRoutes = ({children}: {children: React.ReactNode }) => {
   const { isAuthenticated, user } = useUserStore();
@@ -59,21 +58,25 @@ const appRouter = createBrowserRouter([
     path:"/",
     element:(
       <ProtectedRoutes>
-        <Home />
+        <MainLayout />
       </ProtectedRoutes>
     ),
     children: [
       {
         path:"/",
-        element: <HereSection />
+        element: <Home />
       },
       {
         path: "/profile",
         element: <Profile />
       },
       {
+        path: "/search",
+        element:<SearchPage />
+      },
+      {
         path: "/search/:text",
-        element: <SeachPage />
+        element: <SearchPage />
       },
       {
         path: "/restaurant/:id",

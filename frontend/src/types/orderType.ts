@@ -7,9 +7,9 @@ export type cartItems = {
 };
 
 export type CheckoutSessionRequest = {
-  cartItem: cartItems[];
+  cartItems: cartItems[];
 
-  deleveryDetails: {
+  deliveryDetails: {
     name: string;
     email: string;
     contact: string;
@@ -23,7 +23,7 @@ export type CheckoutSessionRequest = {
 export interface Orders extends CheckoutSessionRequest {
   _id: string;
   status: string;
-  totalAmount: number;
+  totalAmount: Number;
 }
 
 export type OrderState = {

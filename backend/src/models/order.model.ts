@@ -22,7 +22,7 @@ export interface IOrder extends Document{
     deliveryDetails: DeliveryDetail,
     cartItems: CartItems;
     totalAmount: number;
-    status: "pending" | "confirmed" | "preparing" | "outfordelivery" | "delivered"
+    status: "pending" | "confirmed" | "preparing" | "out for delivery" | "delivered"
 }
 
 const orderSchema = new mongoose.Schema({

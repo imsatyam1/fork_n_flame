@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { restaurantFormSchema } from "@/schema/restaurantSchema";
+import { useRestaurantStore } from "@/store/useRestaurantStore";
 import { Loader2 } from "lucide-react";
 import React, { FormEvent, useEffect, useState } from "react";
 
@@ -16,8 +17,7 @@ const Restaurant = () => {
   });
 
   const [errors, setErrors] = useState<Partial<restaurantFormSchema>>({});
-  const [loading, setLoading] = useState<boolean>(false);
-  const [restaurant, setRestaurant] = useState<boolean>(false);
+  const { loading, restaurant, updateRestaurant, createRestaurant, getRestaurant } = useRestaurantStore();
 
   const changeEventHandler = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type } = e.target;
@@ -35,7 +35,6 @@ const Restaurant = () => {
     }
 
     try {
-      setLoading(true);
       const formData = new FormData();
       formData.append("restaurantName", input.restaurantName);
       formData.append("city", input.city);
@@ -44,20 +43,34 @@ const Restaurant = () => {
       formData.append("cuisines", JSON.stringify(input.cuisines));
       if (input.imageFile) formData.append("imageFile", input.imageFile);
 
-      // Simulate API delay
-      setTimeout(() => {
-        setLoading(false);
-        setRestaurant(true);
-      }, 1500);
+      if(restaurant){
+        await updateRestaurant(formData);
+      }
+      else{
+        await createRestaurant(formData);
+      }
     } catch (error) {
       console.log(error);
-      setLoading(false);
     }
   };
 
   useEffect(() => {
-    const fetchRestaurant = async () => {};
+    const fetchRestaurant = async () => {
+      await getRestaurant();
+      if(restaurant){
+        setInput({
+          restaurantName: restaurant.restaurantName || "",
+          city: restaurant.city || "",
+          country: restaurant.country || "",
+          deliveryTime: Number(restaurant.deliveryTime) || 0,
+          cuisines: restaurant.cuisines? restaurant.cuisines.map((cuisine: string) => cuisine): [],
+          imageFile: undefined
+        })
+      }
+    };
     fetchRestaurant();
+    console.log(restaurant);
+    
   }, []);
 
   return (

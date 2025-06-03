@@ -1,6 +1,7 @@
 import {z} from "zod";
 
 export const menuSchema = z.object({
+    theme:z.string().nonempty({ message: "menu's theme is required"}),
     name:z.string().nonempty({message: "Name is required"}),
     description:z.string().nonempty({message: "description is required!"}),
     price: z.number().min(0, {message: "Price can not be negative"}),

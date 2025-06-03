@@ -1,3 +1,4 @@
+import { useOrderStore } from '@/store/useOrderStore';
 import { CartItem } from '@/types/cartTypes';
 import { cartItems } from '@/types/orderType';
 import { IndianRupee, CheckCircle, Clock, Truck, CookingPot, BadgeCheck } from 'lucide-react';
@@ -39,23 +40,10 @@ const getStatusMessage = (status: string) => {
 };
 
 const Success = () => {
-  const [orders, setOrders] = useState<Order[]>([]);
+  const { orders, getOrderDetails } = useOrderStore();
 
   useEffect(() => {
-    setOrders([
-      {
-        status: '',
-        cartItem: [
-          {
-            menuId: '1',
-            name: 'Rasgulla',
-            image: 'https://via.placeholder.com/100',
-            price: '50',
-            quantity: '2'
-          }
-        ]
-      }
-    ]);
+    getOrderDetails();
   }, []);
 
   if (orders.length === 0) {
@@ -69,7 +57,7 @@ const Success = () => {
   }
 
   const currentOrder = orders[0];
-
+  
   return (
     <div className='flex items-center justify-center min-h-screen bg-gray-100 dark:bg-gray-900 px-4'>
       <div className='bg-white dark:bg-gray-800 shadow-2xl rounded-2xl p-8 max-w-2xl w-full'>
@@ -93,7 +81,7 @@ const Success = () => {
 
           {orders.map((order, index) => (
             <div key={index} className='space-y-4'>
-              {order.cartItem.map((item, i) => (
+              {order.cartItems.map((item, i) => (
                 <div
                   key={i}
                   className='flex items-center bg-gray-50 dark:bg-gray-700 rounded-xl p-4 shadow-sm'

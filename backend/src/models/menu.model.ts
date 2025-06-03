@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 
 export interface IMenu{
+    theme: string;
     name:string;
     description: string;
     price: number;
@@ -13,6 +14,10 @@ export interface IMenuDocument extends IMenu, Document {
 }
 
 const menuSchema = new mongoose.Schema<IMenuDocument>({
+    theme: {
+        type: String,
+        required: true
+    },
     name:{
         type:String,
         required: true

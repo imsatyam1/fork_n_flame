@@ -1,12 +1,14 @@
 import { Request, Response } from "express";
-import { uploadImageOnCloudinary } from "../utils/cloudianry_functions";
+import { deleteImageOnCloudinary, uploadImageOnCloudinary } from "../utils/cloudianry_functions";
 import { Menu } from "../models/menu.model";
 import { Restaurant } from "../models/restaurant.model";
 import mongoose, { ObjectId } from "mongoose";
 
 export const addMenu = async (req: Request, res: Response) => {
   try {
-    const { name, description, price } = req.body;
+    const { theme, name, description, price } = req.body;
+    console.log(req.body);
+    
     const file = req.file;
     if (!file) {
       return res.status(404).json({
@@ -14,8 +16,10 @@ export const addMenu = async (req: Request, res: Response) => {
         message: "Image is required!",
       });
     }
-    const imageUrl = await uploadImageOnCloudinary(file as Express.Multer.File);
+    const imageUrl = await uploadImageOnCloudinary(file);
+
     const menu: any = await Menu.create({
+      theme,
       name,
       description,
       price,
@@ -71,4 +75,13 @@ export const editMenu = async(req: Request, res: Response) => {
         console.log(error);
         return res.status(500).json({ message: "Internal Server error"});
     }
+}
+
+export const getAllMenus = async(req: Request, res: Response) => {
+  try {
+    const menus = await Menu.find();
+    res.status(201).json( {success: true ,menus});
+  } catch (error) {
+    res.status(500).json({message: "Server Error!!"});
+  }
 }

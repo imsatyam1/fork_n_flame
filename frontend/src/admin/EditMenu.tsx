@@ -10,61 +10,80 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { MenuFormSchema, menuSchema } from "@/schema/menuSchema";
+import { useMenuStore } from "@/store/useMenuStore";
+import { useRestaurantStore } from "@/store/useRestaurantStore";
 import { MenuItem } from "@/types/restaurantType";
 import { Loader2 } from "lucide-react";
-import React, { Dispatch, FormEvent, SetStateAction, useEffect, useState } from "react";
+import React, {
+  Dispatch,
+  FormEvent,
+  SetStateAction,
+  useEffect,
+  useState,
+} from "react";
 
-const EditMenu = ({
-  selectedMenu,
-  editOpen,
-  setEditOpen,
-}: {
-  selectedMenu: MenuItem;
+interface EditMenuProps {
+  selectedMenu: MenuItem | null;
   editOpen: boolean;
   setEditOpen: Dispatch<SetStateAction<boolean>>;
-}) => {
+}
+
+const EditMenu = ({ selectedMenu, editOpen, setEditOpen }: EditMenuProps) => {
   const [input, setInput] = useState<MenuFormSchema>({
+    theme: "",
     name: "",
     description: "",
     price: 0,
     image: undefined,
   });
   const [error, setError] = useState<Partial<MenuFormSchema>>({});
-  const [loading, setLoading] = useState<boolean>(false);
+  
+  const { loading, editMenu } = useMenuStore();
+  const { getRestaurant } = useRestaurantStore();
 
   const changeEventHandler = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value, type } = e.target;
-    setInput({ ...input, [name]: type === "number" ? Number(value) : value });
+    const { name, value } = e.target;
+    setInput({ ...input, [name]: name === "price" ? Number(value) : value });
   };
 
   const submitHandler = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const result = menuSchema.safeParse(input);
-    if(!result.success){
-        const fieldErrors = result.error.formErrors.fieldErrors;
-        setError(fieldErrors as Partial<MenuFormSchema>);
-        return;
+    if (!result.success) {
+      const fieldErrors = result.error.formErrors.fieldErrors;
+      setError(fieldErrors as Partial<MenuFormSchema>);
+      return;
     }
 
     try {
-      setLoading(true);
       const formData = new FormData();
+      formData.append("theme", input.theme);
       formData.append("name", input.name);
       formData.append("description", input.description);
       formData.append("price", input.price.toString());
       if (input.image) {
         formData.append("image", input.image);
       }
-      console.log(formData);
+      if (selectedMenu && selectedMenu._id) {
+        const success = await editMenu(selectedMenu._id, formData);
+        if (success) {
+          setEditOpen(false);
+        }
+      }
     } catch (error) {
       console.log(error);
-    } finally {
-      setLoading(false);
     }
   };
 
   useEffect(() => {
+      if (!editOpen) {
+        getRestaurant(); 
+      }
+    }, [editOpen]);
+
+  useEffect(() => {
     setInput({
+      theme: selectedMenu?.theme || "",
       name: selectedMenu?.name || "",
       description: selectedMenu?.description || "",
       price: selectedMenu?.price || 0,
@@ -82,6 +101,21 @@ const EditMenu = ({
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={submitHandler} className="space-y-4">
+          <div>
+            <Label>Theme & Vibes</Label>
+            <Input
+              type="text"
+              name="theme"
+              value={input.theme}
+              onChange={changeEventHandler}
+              placeholder="Enter menu's theme"
+            />
+            {error && (
+              <span className="text-xs font-medium text-red-600">
+                {error.name}
+              </span>
+            )}
+          </div>
           <div>
             <Label>Name</Label>
             <Input
